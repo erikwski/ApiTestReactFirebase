@@ -1,6 +1,6 @@
-import axios from 'axios';
 import React from 'react';
 import {useState} from 'react';
+import {addNewText, getSavedText} from './api/api';
 import {
   SafeAreaView,
   ScrollView,
@@ -9,24 +9,23 @@ import {
   TextInput,
   Button,
   TouchableOpacity,
-  Alert,
+  FlatList,
+  Text,
 } from 'react-native';
 
 const App = () => {
-  const [newText, setNewText] = useState(true);
-
-  function inputChange(enteredText) {
+  const [newText, setNewText] = useState('');
+  const [allText, updateAllText] = useState([]);
+  getSavedText().then(old_text_stored => {
+    updateAllText(old_text_stored);
+  });
+  function inputChange(enteredText, eeee) {
     setNewText(enteredText);
   }
-  async function addNewText() {
-    try {
-      let data = await axios.post(
-        'https://react-test-14109-default-rtdb.europe-west1.firebasedatabase.app/newtext.json',
-        {text: newText},
-      );
-    } catch (error) {
-      Alert.alert("Errore nell'inserimento", 'Riprovare più tardi');
-    }
+  function triggerAddNewText() {
+    addNewText(newText).then(() => {
+      setNewText('');
+    });
   }
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -34,12 +33,36 @@ const App = () => {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
-        <Header />
-        <TextInput onChange={inputChange} />
+        <TextInput
+          style={{
+            borderWidth: 2,
+            borderRadius: 10,
+            borderColor: 'gainsboro',
+            marginBottom: 20,
+            textAlign: 'center',
+          }}
+          placeholder="Inserisci un nuovo testo"
+          onChangeText={inputChange}
+        />
         <TouchableOpacity>
-          <Button title="" onPress={addNewText} />
+          <Button title="ADD NEW" onPress={triggerAddNewText} />
         </TouchableOpacity>
       </ScrollView>
+      <FlatList
+        style={{
+          padding: 20,
+        }}
+        data={allText}
+        renderItem={({item}) => (
+          <Text
+            style={{
+              textAlign: 'center',
+              width: '100%',
+            }}>
+            {item.text}
+          </Text>
+        )}
+      />
     </SafeAreaView>
   );
 };
